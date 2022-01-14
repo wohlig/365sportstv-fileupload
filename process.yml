@@ -1,0 +1,4 @@
+apps:
+  - script: "app.js"
+    name: "MulterFileUploads - Port 1330"
+    args: "--prod"

@@ -1,0 +1,5 @@
+.gitignore
+node_modules
+.travis.yml
+bower_components
+.env

@@ -52,5 +52,5 @@ jobs:
         value: "$AWS_REPOSITORY_URL:$GITHUB_REF_NAME-$GITHUB_SHA"
         github-token: "${{ secrets.AWS_GITHUB_TOKEN }}"
         github-org-and-repo: "wohlig/tajexch-gitops"
-        github-username: $GITHUB_ACTOR
-        github-user-mail: $GITHUB_ACTOR@wohlig.com
+        github-username: wohlig
+        github-user-mail: chintan@wohlig.com

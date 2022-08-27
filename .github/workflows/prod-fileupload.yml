@@ -1,0 +1,52 @@
+name: prod-fileupload
+
+on:
+    # Trigger the workflow on push,
+    # but only for the pre-production branch
+    push:
+        branches:
+            - production
+
+env:
+    AWS_REPOSITORY_URL: ${{ secrets.AWS_REPOSITORY_URL }}
+    GITHUB_TOKEN: ${{ secrets.AWS_GITHUB_TOKEN }}
+
+jobs:
+    prod-fileupload:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Configure AWS credentials
+              uses: aws-actions/configure-aws-credentials@v1
+              with:
+                  aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+                  aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+                  aws-region: ap-south-1
+
+            - name: Login to Amazon ECR
+              id: login-ecr
+              uses: aws-actions/amazon-ecr-login@v1
+
+            - uses: actions/checkout@v2
+            - name: Set env
+              run: echo "GITHUB_BRANCH=$(echo $GITHUB_REF_NAME-$GITHUB_SHA)" >> $GITHUB_ENV
+
+            - uses: actions/checkout@v2
+            - name: Build the Docker image
+              run: |
+                  docker build -t 947897025021.dkr.ecr.ap-south-1.amazonaws.com/fileupload:$GITHUB_REF_NAME-$GITHUB_SHA . 
+                  docker push 947897025021.dkr.ecr.ap-south-1.amazonaws.com/fileupload:$GITHUB_REF_NAME-$GITHUB_SHA
+                  
+                  git clone https://${{ secrets.AWS_GITHUB_USER }}:${{ secrets.AWS_GITHUB_TOKEN }}@github.com/wohlig/Sportstv365-GitOps
+                  
+                  cd Sportstv365-GitOps
+                  git checkout production
+                  
+                  git config user.name "$GITHUB_ACTOR"
+                  git config user.email "$GITHUB_ACTOR@wohlig.com"
+                  
+                  yq e '.spec.template.spec.containers[0].image = "947897025021.dkr.ecr.ap-south-1.amazonaws.com/fileupload:${{ env.GITHUB_BRANCH }}"' -i deployment.apps/fileupload.yaml
+                  
+                  git add .
+                  git commit -m "updating newer image"
+                  git push --set-upstream origin production
